@@ -132,14 +132,18 @@ def send_command():
         return jsonify({'status': 'error', 'message': 'No agent is running'})
     
     command = request.json.get('command', '')
-    
+
     try:
+        # Check if agent_process and stdin are valid
+        if agent_process is None or agent_process.stdin is None:
+            return jsonify({'status': 'error', 'message': 'No agent is running or stdin is closed'})
+
         # Send command to process stdin
         agent_process.stdin.write(command + '\n')
         agent_process.stdin.flush()
-        
+
         return jsonify({'status': 'success', 'message': 'Command sent'})
-    
+
     except Exception as e:
         return jsonify({'status': 'error', 'message': f'Failed to send command: {str(e)}'})
 
