@@ -16,3 +16,35 @@ services:
       - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - XAI_API_KEY=${XAI_API_KEY}
+    # Share network with the web_ui service
+    networks:
+      - autoagent-network
+
+  web_ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8080:5000"  # Expose port 8080 on host, mapped to port 5000 in container
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_APP=web_wrapper.py
+      # Method 1: Define environment variables directly here
+      - GITHUB_AI_TOKEN=${GITHUB_AI_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+    depends_on:
+      - autoagent
+    networks:
+      - autoagent-network
+
+networks:
+  autoagent-network:
+    driver: bridge
