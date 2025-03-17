@@ -22,11 +22,6 @@ COPY --from=builder /wheels /wheels
 RUN apt-get update && \
     apt-get install -y ffmpeg sqlite3 libsqlite3-dev && \
     sqlite3 --version && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:sergey-dryabzhinsky/sqlite3 -y && \
-    apt-get update && \
-    apt-get install -y sqlite3 libsqlite3-dev && \
-    sqlite3 --version && \
     pip install --no-cache-dir /wheels/* && \
     rm -rf /var/lib/apt/lists/*
 
