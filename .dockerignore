@@ -22,3 +22,11 @@ var/
 .git
 .gitignore
 .dockerignore
+docs/
+tests/
+*.md
+assets/
+evaluation/
+static/
+templates/
+docs/
