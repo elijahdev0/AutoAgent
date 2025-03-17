@@ -27,6 +27,3 @@ tests/
 *.md
 assets/
 evaluation/
-static/
-templates/
-docs/
