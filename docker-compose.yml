@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  autoagent:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
