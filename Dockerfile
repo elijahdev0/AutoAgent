@@ -13,11 +13,30 @@ RUN apt-get update && \
 # Add conda to path
 ENV PATH="/opt/conda/bin:${PATH}"
 
-# Configure conda channels and install playwright
-RUN conda config --add channels conda-forge && \
+# Install system dependencies and configure conda channels and install playwright
+RUN apt-get update && \
+    apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxcb1 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libatspi2.0-0 \
+    libwayland-client0 && \
+    conda config --add channels conda-forge && \
     conda config --add channels microsoft && \
-    conda install -y pytest-playwright && \
-    playwright install
+    conda install -y python=3.11 pytest-playwright && \
+    playwright install --with-deps chromium
 
 COPY pyproject.toml setup.cfg ./
 COPY autoagent ./autoagent/
@@ -44,11 +63,30 @@ RUN apt-get update && \
 # Add conda to path
 ENV PATH="/opt/conda/bin:${PATH}"
 
-# Configure conda channels and install playwright
-RUN conda config --add channels conda-forge && \
+# Install system dependencies and configure conda channels and install playwright
+RUN apt-get update && \
+    apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxcb1 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libatspi2.0-0 \
+    libwayland-client0 && \
+    conda config --add channels conda-forge && \
     conda config --add channels microsoft && \
-    conda install -y pytest-playwright && \
-    playwright install
+    conda install -y python=3.11 pytest-playwright && \
+    playwright install --with-deps chromium
 
 # Install runtime dependencies and wheels
 COPY --from=builder /wheels /wheels
