@@ -68,6 +68,27 @@ def start_agent():
         env = os.environ.copy()
         if model != 'claude-3-5-sonnet-20241022':
             env['COMPLETION_MODEL'] = model
+
+        # Get API keys from request
+        api_keys = {
+            'OPENAI_API_KEY': request.json.get('openai_key'),
+            'ANTHROPIC_API_KEY': request.json.get('anthropic_key'),
+            'DEEPSEEK_API_KEY': request.json.get('deepseek_key'),
+            'GEMINI_API_KEY': request.json.get('gemini_key'),
+            'GROQ_API_KEY': request.json.get('groq_key'),
+            'HUGGINGFACE_API_KEY': request.json.get('huggingface_key'),
+            'XAI_API_KEY': request.json.get('xai_key'),
+            'OPENROUTER_API_KEY': request.json.get('openrouter_key'),
+        }
+
+        # Set API base URL for OpenRouter if needed
+        if 'openrouter/' in model:
+            env['API_BASE_URL'] = 'https://openrouter.ai/api/v1'
+
+        # Update environment with provided API keys
+        for key, value in api_keys.items():
+            if value:
+                env[key] = value
         
         # Use pty to create pseudo-terminal for interactive CLI
         master, slave = pty.openpty()

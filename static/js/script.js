@@ -8,10 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const modeSelect = document.getElementById('mode-select');
     const modelSelect = document.getElementById('model-select');
     const statusText = document.getElementById('status-text');
+    const openrouterModelGroup = document.getElementById('openrouter-model-group');
+    const saveSettingsBtn = document.getElementById('save-settings');
 
     // State
     let isAgentRunning = false;
     let pollingInterval = null;
+    let apiKeys = {};
 
     // Initialize
     function init() {
@@ -19,11 +22,19 @@ document.addEventListener('DOMContentLoaded', function() {
         startBtn.addEventListener('click', startAgent);
         stopBtn.addEventListener('click', stopAgent);
         sendBtn.addEventListener('click', sendCommand);
+        saveSettingsBtn.addEventListener('click', saveSettings);
+        modelSelect.addEventListener('change', handleModelChange);
         commandInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 sendCommand();
             }
         });
+
+        // Load saved API keys
+        loadSettings();
+        
+        // Initial model check
+        handleModelChange();
 
         // Focus on input when clicking anywhere in the terminal
         document.querySelector('.terminal-container').addEventListener('click', function() {
@@ -31,6 +42,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandInput.focus();
             }
         });
+    }
+
+    // Load settings from localStorage
+    function loadSettings() {
+        const savedKeys = localStorage.getItem('apiKeys');
+        if (savedKeys) {
+            apiKeys = JSON.parse(savedKeys);
+            Object.keys(apiKeys).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = apiKeys[key];
+                }
+            });
+        }
+    }
+
+    // Handle model selection change
+    function handleModelChange() {
+        const selectedModel = modelSelect.value;
+        openrouterModelGroup.style.display = selectedModel === 'openrouter-custom' ? 'block' : 'none';
+    }
+
+    // Save settings to localStorage
+    function saveSettings() {
+        apiKeys = {
+            'openai-key': document.getElementById('openai-key').value,
+            'anthropic-key': document.getElementById('anthropic-key').value,
+            'deepseek-key': document.getElementById('deepseek-key').value,
+            'gemini-key': document.getElementById('gemini-key').value,
+            'groq-key': document.getElementById('groq-key').value,
+            'huggingface-key': document.getElementById('huggingface-key').value,
+            'xai-key': document.getElementById('xai-key').value,
+            'openrouter-key': document.getElementById('openrouter-key').value,
+            'openrouter-model': document.getElementById('openrouter-model').value
+        };
+
+        localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
+        bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
     }
 
     // Append messages to terminal
@@ -52,29 +101,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Convert ANSI color codes to HTML
     function convertAnsiToHtml(text) {
-        // Replace common ANSI color codes with spans
-        // This is a simple version, you might want to use a library for more complex ANSI code handling
         return text
-            .replace(/\x1B\[0m/g, '</span>')
-            .replace(/\x1B\[1;31m/g, '<span style="color: #ff5252; font-weight: bold;">') // Bold Red
-            .replace(/\x1B\[1;32m/g, '<span style="color: #4CAF50; font-weight: bold;">') // Bold Green
-            .replace(/\x1B\[1;33m/g, '<span style="color: #ffca28; font-weight: bold;">') // Bold Yellow
-            .replace(/\x1B\[1;34m/g, '<span style="color: #2196F3; font-weight: bold;">') // Bold Blue
-            .replace(/\x1B\[1;35m/g, '<span style="color: #E040FB; font-weight: bold;">') // Bold Magenta
-            .replace(/\x1B\[1;36m/g, '<span style="color: #00BCD4; font-weight: bold;">') // Bold Cyan
-            .replace(/\x1B\[31m/g, '<span style="color: #ff5252;">') // Red
-            .replace(/\x1B\[32m/g, '<span style="color: #4CAF50;">') // Green
-            .replace(/\x1B\[33m/g, '<span style="color: #ffca28;">') // Yellow
-            .replace(/\x1B\[34m/g, '<span style="color: #2196F3;">') // Blue
-            .replace(/\x1B\[35m/g, '<span style="color: #E040FB;">') // Magenta
-            .replace(/\x1B\[36m/g, '<span style="color: #00BCD4;">') // Cyan
-            .replace(/\n/g, '<br>'); // Line breaks
+            .replace(/\[0m/g, '</span>')
+            .replace(/\[1;31m/g, '<span style="color: #ff5252; font-weight: bold;">')
+            .replace(/\[1;32m/g, '<span style="color: #4CAF50; font-weight: bold;">')
+            .replace(/\[1;33m/g, '<span style="color: #ffca28; font-weight: bold;">')
+            .replace(/\[1;34m/g, '<span style="color: #2196F3; font-weight: bold;">')
+            .replace(/\[1;35m/g, '<span style="color: #E040FB; font-weight: bold;">')
+            .replace(/\[1;36m/g, '<span style="color: #00BCD4; font-weight: bold;">')
+            .replace(/\[31m/g, '<span style="color: #ff5252;">')
+            .replace(/\[32m/g, '<span style="color: #4CAF50;">')
+            .replace(/\[33m/g, '<span style="color: #ffca28;">')
+            .replace(/\[34m/g, '<span style="color: #2196F3;">')
+            .replace(/\[35m/g, '<span style="color: #E040FB;">')
+            .replace(/\[36m/g, '<span style="color: #00BCD4;">')
+            .replace(/\n/g, '<br>');
     }
 
     // Start the agent
     function startAgent() {
         const mode = modeSelect.value;
-        const model = modelSelect.value;
+        let model = modelSelect.value;
+        
+        // Handle OpenRouter custom model
+        if (model === 'openrouter-custom') {
+            const customModel = document.getElementById('openrouter-model').value.trim();
+            if (!customModel) {
+                appendToTerminal('Error: OpenRouter model name is required\n', 'error');
+                return;
+            }
+            model = customModel;
+        }
         
         // Clear the terminal output
         terminalOutput.innerHTML = '';
@@ -83,13 +140,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Disable UI elements
         setUIState(true, false);
         
-        // Send request to start the agent
+        // Send request to start the agent with API keys
         fetch('/start', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ mode, model })
+            body: JSON.stringify({
+                mode,
+                model,
+                openai_key: document.getElementById('openai-key').value,
+                anthropic_key: document.getElementById('anthropic-key').value,
+                deepseek_key: document.getElementById('deepseek-key').value,
+                gemini_key: document.getElementById('gemini-key').value,
+                groq_key: document.getElementById('groq-key').value,
+                huggingface_key: document.getElementById('huggingface-key').value,
+                xai_key: document.getElementById('xai-key').value,
+                openrouter_key: document.getElementById('openrouter-key').value
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -128,7 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
         commandInput.disabled = true;
         sendBtn.disabled = true;
         
-        // Send request to stop the agent
         fetch('/stop', {
             method: 'POST'
         })
@@ -147,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 appendToTerminal(`Error stopping agent: ${data.message}\n`, 'error');
                 
-                // Keep the current UI state
                 if (isAgentRunning) {
                     setUIState(true, true);
                 }
@@ -156,7 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             appendToTerminal(`Network error: ${error.message}\n`, 'error');
             
-            // Keep the current UI state
             if (isAgentRunning) {
                 setUIState(true, true);
             }
@@ -168,13 +233,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const command = commandInput.value.trim();
         if (!command) return;
         
-        // Display the command
         appendToTerminal(`> ${command}`, 'command');
-        
-        // Clear the input
         commandInput.value = '';
         
-        // Send the command to the server
         fetch('/send', {
             method: 'POST',
             headers: {
@@ -195,10 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Start polling for output
     function startPolling() {
-        // Stop any existing polling
         stopPolling();
-        
-        // Start a new polling interval
         pollingInterval = setInterval(pollOutput, 500);
     }
 
@@ -216,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Update the running state
                 if (isAgentRunning !== data.running) {
                     isAgentRunning = data.running;
                     
@@ -228,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                // Append any new output
                 if (data.output) {
                     appendToTerminal(data.output);
                 }
@@ -241,19 +297,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Set UI state
     function setUIState(isStarted, isReady) {
-        // Start/Stop buttons
         startBtn.disabled = isStarted;
         stopBtn.disabled = !isStarted;
         
-        // Mode/Model selects
         modeSelect.disabled = isStarted;
         modelSelect.disabled = isStarted;
         
-        // Command input/send
         commandInput.disabled = !isReady;
         sendBtn.disabled = !isReady;
     }
 
     // Initialize the UI
     init();
-}); 
+});

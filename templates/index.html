@@ -27,14 +27,20 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="model-select" class="form-label text-light">LLM Model:</label>
-                        <select id="model-select" class="form-select form-select-sm">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <label for="model-select" class="form-label text-light mb-0">LLM Model:</label>
+                            <button id="settings-btn" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                                <i class="fas fa-gear"></i>
+                            </button>
+                        </div>
+                        <select id="model-select" class="form-select form-select-sm mt-2">
                             <option value="claude-3-5-sonnet-20241022" selected>Claude 3.5 Sonnet</option>
                             <option value="gpt-4o">GPT-4o</option>
                             <option value="deepseek-r1">Deepseek R1</option>
                             <option value="grok-2">Grok 2</option>
                             <option value="gemini-pro">Gemini Pro</option>
                             <option value="gemini-ultra">Gemini Ultra</option>
+                            <option value="openrouter-custom">OpenRouter (Custom Model)</option>
                         </select>
                     </div>
                     <button id="start-btn" class="btn btn-success btn-sm w-100">Start Agent</button>
@@ -79,7 +85,62 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="settingsModalLabel">API Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="openai-key" class="form-label">OpenAI API Key</label>
+                        <input type="password" class="form-control" id="openai-key" placeholder="sk-...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="anthropic-key" class="form-label">Anthropic API Key</label>
+                        <input type="password" class="form-control" id="anthropic-key" placeholder="sk-ant-...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="deepseek-key" class="form-label">Deepseek API Key</label>
+                        <input type="password" class="form-control" id="deepseek-key">
+                    </div>
+                    <div class="mb-3">
+                        <label for="gemini-key" class="form-label">Gemini API Key</label>
+                        <input type="password" class="form-control" id="gemini-key">
+                    </div>
+                    <div class="mb-3">
+                        <label for="groq-key" class="form-label">Groq API Key</label>
+                        <input type="password" class="form-control" id="groq-key">
+                    </div>
+                    <div class="mb-3">
+                        <label for="huggingface-key" class="form-label">Huggingface API Key</label>
+                        <input type="password" class="form-control" id="huggingface-key">
+                    </div>
+                    <div class="mb-3">
+                        <label for="xai-key" class="form-label">XAI API Key</label>
+                        <input type="password" class="form-control" id="xai-key">
+                    </div>
+                    <div class="mb-3">
+                        <label for="openrouter-key" class="form-label">OpenRouter API Key</label>
+                        <input type="password" class="form-control" id="openrouter-key" placeholder="sk-or-...">
+                    </div>
+                    <div class="mb-3" id="openrouter-model-group" style="display: none;">
+                        <label for="openrouter-model" class="form-label">OpenRouter Model Name</label>
+                        <input type="text" class="form-control" id="openrouter-model" placeholder="anthropic/claude-3-opus">
+                        <small class="text-muted">Enter the full model path (e.g., openai/gpt-4-turbo, anthropic/claude-3-opus)</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-settings">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-</html> 
+</html>
